@@ -123,15 +123,12 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 
 //当出现风控刷新Token
 func (bot *CQBot) RefreshToken() bool {
-	token, err := os.ReadFile("session.token")
-	if err != nil {
-		return false
-	}
+	token := bot.Client.GenToken()
 	if err := bot.Client.TokenLogin(token); err != nil {
 		log.Warnf("Token无法使用，尝试正常登录")
-		//刷新Client，尝试扔给主goroutine处理
-		bot.Client.Disconnect()
-		//刷新token
+		if _, err := bot.Client.Login(); err != nil {
+			return false
+		}
 		if bot.Client.Online {
 			token = bot.Client.GenToken()
 			os.WriteFile("session.token", token, 0o644)
