@@ -138,8 +138,8 @@ func (bot *CQBot) RefreshToken() bool {
 		}
 		//刷新token
 		token = bot.Client.GenToken()
+		os.WriteFile("session.token", token, 0o644)
 	}
-	os.WriteFile("session.token", token, 0o644)
 	return true
 }
 
