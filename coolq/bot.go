@@ -121,6 +121,28 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 	return bot
 }
 
+//当出现风控刷新Token
+func (bot *CQBot) RefreshToken() bool {
+	token, err := os.ReadFile("session.token")
+	if err != nil {
+		return false
+	}
+	if err := bot.Client.TokenLogin(token); err != nil {
+		log.Warnf("Token无法使用，尝试正常登录")
+		//刷新Client
+		bot.Client = client.NewClientEmpty()
+		//尝试登录
+		if res, err := bot.Client.Login(); err != nil {
+			log.Warnln(res, err)
+			return false
+		}
+		//刷新token
+		token = bot.Client.GenToken()
+	}
+	os.WriteFile("session.token", token, 0o644)
+	return true
+}
+
 // OnEventPush 注册事件上报函数
 func (bot *CQBot) OnEventPush(f func(e *Event)) {
 	bot.lock.Lock()
@@ -253,8 +275,16 @@ func (bot *CQBot) SendGroupMessage(groupID int64, m *message.SendingMessage) int
 	bot.checkMedia(newElem, groupID)
 	ret := bot.Client.SendGroupMessage(groupID, m, base.ForceFragmented)
 	if ret == nil || ret.Id == -1 {
-		log.Warnf("群消息发送失败: 账号可能被风控.")
-		return -1
+		if !bot.RefreshToken() {
+			log.Warnf("群消息发送失败: 账号可能被风控.")
+			return -1
+		}
+		ret = bot.Client.SendGroupMessage(groupID, m, base.ForceFragmented)
+		if ret == nil || ret.Id == -1 {
+			//没救了
+			log.Warnf("群消息发送失败: 账号可能被风控.")
+			return -1
+		}
 	}
 	return bot.InsertGroupMessage(ret)
 }
