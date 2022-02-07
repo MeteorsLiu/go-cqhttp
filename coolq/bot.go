@@ -123,6 +123,8 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 
 //当出现风控刷新Token
 func (bot *CQBot) RefreshToken() bool {
+	bot.lock.Lock()
+	defer bot.lock.Unlock()
 	token, err := os.ReadFile("session.token")
 	if err != nil {
 		return false
@@ -139,7 +141,6 @@ func (bot *CQBot) RefreshToken() bool {
 			return false
 		}
 		//Await online
-
 		token = bot.Client.GenToken()
 		os.WriteFile("session.token", token, 0o644)
 		log.Printf("Token刷新成功")
