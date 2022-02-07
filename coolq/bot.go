@@ -130,12 +130,9 @@ func (bot *CQBot) RefreshToken() bool {
 		return false
 	}
 	if err := bot.Client.TokenLogin(token); err != nil {
-		uin := bot.Client.Uin
-		md5 := bot.Client.PasswordMd5
+
 		log.Warnf("Token无法使用，尝试正常登录")
 		bot.Client.Disconnect()
-		bot.Client.Release()
-		bot.Client = client.NewClientMd5(uin, md5)
 		if _, err := bot.Client.Login(); err != nil {
 			log.Printf("登录失败")
 			return false
@@ -291,6 +288,7 @@ func (bot *CQBot) SendGroupMessage(groupID int64, m *message.SendingMessage) int
 			log.Warnf("群消息发送失败: 账号可能被风控.")
 			return -1
 		}
+		log.Printf("OK!")
 	}
 	return bot.InsertGroupMessage(ret)
 }
