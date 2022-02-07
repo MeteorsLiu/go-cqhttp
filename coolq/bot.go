@@ -139,11 +139,11 @@ func (bot *CQBot) RefreshToken() bool {
 			os.Exit(0)
 		}
 		//Await online
-		for !bot.Client.Online {
-			token = bot.Client.GenToken()
-			os.WriteFile("session.token", token, 0o644)
-			log.Printf("Token刷新成功")
-		}
+
+		token = bot.Client.GenToken()
+		os.WriteFile("session.token", token, 0o644)
+		log.Printf("Token刷新成功")
+
 	}
 	return true
 }
