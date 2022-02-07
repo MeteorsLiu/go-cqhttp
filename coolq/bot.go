@@ -129,16 +129,14 @@ func (bot *CQBot) RefreshToken() bool {
 	}
 	if err := bot.Client.TokenLogin(token); err != nil {
 		log.Warnf("Token无法使用，尝试正常登录")
-		//刷新Client
-		bot.Client = client.NewClientEmpty()
-		//尝试登录
-		if res, err := bot.Client.Login(); err != nil {
-			log.Warnln(res, err)
-			return false
-		}
+		//刷新Client，尝试扔给主goroutine处理
+		bot.Client.Disconnect()
 		//刷新token
-		token = bot.Client.GenToken()
-		os.WriteFile("session.token", token, 0o644)
+		if bot.Client.Online {
+			token = bot.Client.GenToken()
+			os.WriteFile("session.token", token, 0o644)
+			log.Printf("Token刷新成功")
+		}
 	}
 	return true
 }
