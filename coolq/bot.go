@@ -136,7 +136,7 @@ func (bot *CQBot) RefreshToken() bool {
 		bot.Client = client.NewClientMd5(uin, md5)
 		if _, err := bot.Client.Login(); err != nil {
 			log.Printf("登录失败")
-			os.Exit(0)
+			return false
 		}
 		//Await online
 
