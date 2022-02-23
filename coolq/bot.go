@@ -129,6 +129,7 @@ func (bot *CQBot) RefreshToken() bool {
 	if err != nil {
 		return false
 	}
+	bot.Client.Disconnect()
 	if err := bot.Client.TokenLogin(token); err != nil {
 
 		log.Warnf("Token无法使用，尝试正常登录")
